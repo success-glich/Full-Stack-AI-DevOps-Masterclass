@@ -1,0 +1,53 @@
+name: Context CI Demo
+
+on:
+    # push:
+    #     branches: [ "main", "dev" ]
+    # pull_request:
+
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        env:
+            APP_NAME: "my-demo-app"
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Print GitHub Context
+              run: |
+                  echo "Repository: ${{ github.repository }}"
+                  echo "Branch: ${{ github.ref_name }}"
+                  echo "Commit SHA: ${{ github.sha }}"
+                  echo "Triggered by: ${{ github.actor }}"
+
+            - name: Print Job Context
+              run: |
+                  echo "Job status: ${{ job.status }}"
+
+            - name: Set Dynamic Variable
+              id: vars
+              run: |
+                  echo "BUILD_TIME=$(date)" >> $GITHUB_ENV
+
+            - name: Use Environment Context
+              run: |
+                  echo "App: $APP_NAME"
+                  echo "Build Time: $BUILD_TIME"
+
+            - name: Conditional Step (only main branch)
+              if: github.ref == 'refs/heads/main'
+              run: echo "🚀 Deploying from MAIN branch"
+
+            - name: Conditional Step (PR only)
+              if: github.event_name == 'pull_request'
+              run: echo "🔍 Running PR checks"
+
+            - name: Use Secrets (example)
+              run: echo "Using secret token"
+              env:
+                  API_KEY: ${{ secrets.API_KEY }}
