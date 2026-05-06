@@ -1,9 +1,9 @@
-name: Hello Node.js App To Docker
+name: Hello PythonApp To Docker
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches: ["main"]
+  push:
+    branches: ["main"]
 
 jobs:
   build-test:
@@ -11,20 +11,22 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses:  actions/checkout@v6
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
         with:
-          node-version: "21"
+          python-version: "3.13"
 
       - name: Install dependencies
-        working-directory: ./docker/app1-hello/node
-        run: npm ci
+        working-directory: ./docker/app1-hello/python
+        run:  | 
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Run Tests (if any)
-        working-directory: ./docker/app1-hello/node
-        run: npm test --if-present
+      - name: Run Smoke Test
+        working-directory: ./docker/app1-hello/python
+        run: python -m py_compile  main.py
 
   docker-build-push:
     runs-on: ubuntu-latest
@@ -32,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -46,6 +48,6 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
-          context: ./docker/app1-hello/node
+          context: ./docker/app1-hello/python
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/hello-node:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/hello-python:latest
